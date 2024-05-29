@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Setup</title>
+    <style>
+        #output {
+            white-space: pre-wrap;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+    <h1>Server Setup</h1>
+    <form id="setup-form">
+        <label for="domain">Domain:</label>
+        <input type="text" id="domain" name="domain" required><br><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+        <label for="wildcard">Wildcard SSL:</label>
+        <select id="wildcard" name="wildcard" required>
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+        </select><br><br>
+        <button type="submit">Start Setup</button>
+    </form>
+
+    <h2>Output</h2>
+    <div id="output"></div>
+
+    <script>
+        document.getElementById('setup-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const domain = document.getElementById('domain').value;
+            const email = document.getElementById('email').value;
+            const wildcard = document.getElementById('wildcard').value;
+
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = '';
+
+            const eventSource = new EventSource(`sse.php?domain=${encodeURIComponent(domain)}&email=${encodeURIComponent(email)}&wildcard=${encodeURIComponent(wildcard)}`);
+            eventSource.onmessage = function(event) {
+                outputDiv.innerHTML += event.data + "\n";
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+                if (event.data === "EOF") {
+                    eventSource.close();
+                }
+            };
+
+            eventSource.onerror = function() {
+                outputDiv.innerHTML += "Error occurred. Please check the server logs.\n";
+                eventSource.close();
+            };
+        });
+    </script>
+</body>
+</html>
