@@ -1,6 +1,9 @@
 #!/bin/bash
 
+LOGFILE="/var/log/setup_server.log"
+
 log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $1" >> $LOGFILE
     echo "$1"
 }
 
@@ -19,9 +22,13 @@ sudo apt update && sudo apt upgrade -y
 log "Installing Apache2..."
 sudo apt install apache2 -y
 
+log "Configuring Apache to listen on port 8080..."
+sudo sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf
+sudo sed -i 's/<VirtualHost *:80>/<VirtualHost *:8080>/' /etc/apache2/sites-available/000-default.conf
+
 log "Enabling and starting Apache2 service..."
 sudo systemctl enable apache2
-sudo systemctl start apache2
+sudo systemctl restart apache2
 
 log "Installing MySQL Server..."
 sudo apt install mysql-server -y
